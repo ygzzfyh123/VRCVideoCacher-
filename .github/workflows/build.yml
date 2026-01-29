@@ -16,36 +16,41 @@ jobs:
       Configuration: Release
 
     steps:
-    - name: Checkout Code (拉取代码)
+    - name: Checkout Code
       uses: actions/checkout@v4
       with:
         fetch-depth: 0
 
-    - name: Setup MSBuild (安装构建工具)
+    - name: Setup MSBuild
       uses: microsoft/setup-msbuild@v2
 
-    - name: Setup NuGet (安装包管理器)
+    - name: Setup NuGet
       uses: NuGet/setup-nuget@v2
 
-    - name: Restore NuGet Packages (下载依赖库)
+    - name: Restore NuGet Packages
       run: nuget restore ${{ env.Solution_Name }}
 
-    - name: Build Solution (编译程序)
+    - name: Build Full Package (编译完整版)
       run: msbuild ${{ env.Solution_Name }} /p:Configuration=${{ env.Configuration }} /p:Platform="Any CPU"
 
 
-
-    - name: Compress Build (制作压缩包)
+    - name: Publish Single File (编译单文件)
       run: |
-        # 使用 PowerShell 强制打包 Release 目录下的所有文件
-        # -Force 确保如果有同名文件会覆盖
-        powershell Compress-Archive -Path "**/bin/Release/*" -DestinationPath VRCVideoCacher-Release.zip -Force
+        dotnet publish ${{ env.Solution_Name }} -c Release -r win-x64 --self-contained false -p:PublishSingleFile=true -p:EnableCompressionInSingleFile=true -o ./SingleFileOutput
 
-    - name: Upload Build Artifact (上传并重命名)
+
+    - name: Upload Full Package (上传完整包)
       uses: actions/upload-artifact@v4
       with:
+     
+        name: Full-Package-Run-${{ github.run_number }}
+     
+        path: '**/bin/Release/*'
 
-        name: 自动构建触发，这是第${{ github.run_number }}次任务
-        
 
-        path: VRCVideoCacher-Release.zip
+    - name: Upload Single EXE (上传独立EXE)
+      uses: actions/upload-artifact@v4
+      with:
+        name: Single-Exe-Run-${{ github.run_number }}
+    
+        path: ./SingleFileOutput
