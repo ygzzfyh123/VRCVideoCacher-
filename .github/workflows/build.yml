@@ -12,7 +12,6 @@ jobs:
     runs-on: windows-latest
 
     env:
-
       Solution_Name: VRCVideoCacher.sln
       Configuration: Release
 
@@ -29,16 +28,24 @@ jobs:
       uses: NuGet/setup-nuget@v2
 
     - name: Restore NuGet Packages (下载依赖库)
-
       run: nuget restore ${{ env.Solution_Name }}
 
     - name: Build Solution (编译程序)
-
       run: msbuild ${{ env.Solution_Name }} /p:Configuration=${{ env.Configuration }} /p:Platform="Any CPU"
 
-    - name: Upload Build Artifact (打包上传)
+
+
+    - name: Compress Build (制作压缩包)
+      run: |
+        # 使用 PowerShell 强制打包 Release 目录下的所有文件
+        # -Force 确保如果有同名文件会覆盖
+        powershell Compress-Archive -Path "**/bin/Release/*" -DestinationPath VRCVideoCacher-Release.zip -Force
+
+    - name: Upload Build Artifact (上传并重命名)
       uses: actions/upload-artifact@v4
       with:
-        name: VRCVideoCacher-Release-Build
 
-        path: '**/bin/Release/**'
+        name: 自动构建触发，这是第${{ github.run_number }}次任务
+        
+
+        path: VRCVideoCacher-Release.zip
