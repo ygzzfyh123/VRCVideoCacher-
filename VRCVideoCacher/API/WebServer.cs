@@ -44,7 +44,7 @@ public class WebServer
                 .WithContentCaching(true));
 
         // Listen for state changes.
-        server.StateChanged += (_, e) => $"WebServer State: {e.NewState}".Info();
+        server.StateChanged += (_, e) => $"Web 服务器状态: {e.NewState}".Info();
         server.OnUnhandledException += OnUnhandledException;
         server.OnHttpException += OnHttpException;  
         return server;
@@ -52,13 +52,13 @@ public class WebServer
 
     private static Task OnHttpException(IHttpContext context, IHttpException httpException)
     {
-        Log.Information(httpException.Message!);
+        Log.Information("HTTP 异常: {Message}", httpException.Message);
         return Task.CompletedTask;
     }
 
     private static Task OnUnhandledException(IHttpContext context, Exception exception)
     {
-        Log.Information(exception.Message);
+        Log.Information("未处理异常: {Message}", exception.Message);
         return Task.CompletedTask;
     }
 }

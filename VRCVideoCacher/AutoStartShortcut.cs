@@ -8,7 +8,7 @@ namespace VRCVideoCacher;
 public class AutoStartShortcut
 {
     private static readonly ILogger Log = Program.Logger.ForContext<AutoStartShortcut>();
-    private static readonly byte[] ShortcutSignatureBytes = { 0x4C, 0x00, 0x00, 0x00 }; // signature for ShellLinkHeader
+    private static readonly byte[] ShortcutSignatureBytes = { 0x4C, 0x00, 0x00, 0x00 }; // ShellLinkHeader 的签名
     private const string ShortcutName = "VRCVideoCacher";
     
     [SupportedOSPlatform("windows")]
@@ -18,12 +18,12 @@ public class AutoStartShortcut
         if (shortcut == null)
             return;
 
-        var info = Shortcut.ReadFromFile(shortcut);
+        var info = ShellLink.Shortcut.ReadFromFile(shortcut);
         if (info.LinkTargetIDList.Path == Environment.ProcessPath &&
             info.StringData.WorkingDir == Path.GetDirectoryName(Environment.ProcessPath))
             return;
         
-        Log.Information("Updating VRCX autostart shortcut path...");
+        Log.Information("正在更新 VRCX 自动启动捷径路径...");
         info.LinkTargetIDList.Path = Environment.ProcessPath;
         info.StringData.WorkingDir = Path.GetDirectoryName(Environment.ProcessPath);
         info.WriteToFile(shortcut);
@@ -43,16 +43,16 @@ public class AutoStartShortcut
         if (StartupEnabled())
             return;
         
-        Log.Information("Adding VRCVideoCacher to VRCX autostart...");
+        Log.Information("将 VRCVideoCacher 添加到 VRCX 自动启动...");
         var path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "VRCX", "startup");
         var shortcutPath = Path.Combine(path, $"{ShortcutName}.lnk");
         if (!Directory.Exists(path))
         {
-            Log.Information("VRCX isn't installed");
+            Log.Information("未检测到 VRCX 安装");
             return;
         }
         
-        var shortcut = new Shortcut
+        var shortcut = new ShellLink.Shortcut
         {
             LinkTargetIDList = new LinkTargetIDList
             {

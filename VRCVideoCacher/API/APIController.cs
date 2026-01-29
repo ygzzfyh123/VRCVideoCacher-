@@ -22,20 +22,20 @@ public class ApiController : WebApiController
         var cookies = await reader.ReadToEndAsync();
         if (!Program.IsCookiesValid(cookies))
         {
-            Log.Error("Invalid cookies received, maybe you haven't logged in yet, not saving.");
+            Log.Error("收到无效的 cookies，可能您尚未登录，未保存。");
             HttpContext.Response.StatusCode = 400;
-            await HttpContext.SendStringAsync("Invalid cookies.", "text/plain", Encoding.UTF8);
+            await HttpContext.SendStringAsync("无效的 cookies。", "text/plain", Encoding.UTF8);
             return;
         }
 
         await File.WriteAllTextAsync(YtdlManager.CookiesPath, cookies);
 
         HttpContext.Response.StatusCode = 200;
-        await HttpContext.SendStringAsync("Cookies received.", "text/plain", Encoding.UTF8);
+        await HttpContext.SendStringAsync("已接收 cookies。", "text/plain", Encoding.UTF8);
 
-        Log.Information("Received Youtube cookies from browser extension.");
+        Log.Information("已从浏览器扩展接收 Youtube cookies。");
         if (!ConfigManager.Config.ytdlUseCookies)
-            Log.Warning("Config is NOT set to use cookies from browser extension.");
+            Log.Warning("配置未启用从浏览器扩展使用 cookies。");
     }
 
     [Route(HttpVerbs.Get, "/getvideo")]
@@ -48,39 +48,39 @@ public class ApiController : WebApiController
 
         if (string.IsNullOrEmpty(requestUrl))
         {
-            Log.Error("No URL provided.");
-            await HttpContext.SendStringAsync("No URL provided.", "text/plain", Encoding.UTF8);
+            Log.Error("未提供 URL。");
+            await HttpContext.SendStringAsync("未提供 URL。", "text/plain", Encoding.UTF8);
             return;
         }
 
-        Log.Information("Request URL: {URL}", requestUrl);
+        Log.Information("请求的 URL: {URL}", requestUrl);
 
         if (requestUrl.StartsWith("https://dmn.moe"))
         {
             requestUrl = requestUrl.Replace("/sr/", "/yt/");
-            Log.Information("YTS URL detected, modified to: {URL}", requestUrl);
+            Log.Information("检测到 YTS URL，已修改为: {URL}", requestUrl);
             var resolvedUrl = await GetRedirectUrl(requestUrl);
             if (!string.IsNullOrEmpty(resolvedUrl))
             {
                 requestUrl = resolvedUrl;
-                Log.Information("YTS URL resolved to URL: {URL}", resolvedUrl);
+                Log.Information("YTS URL 已解析为: {URL}", resolvedUrl);
             }
             else
             {
-                Log.Error("Failed to resolve YTS URL: {URL}", requestUrl);
+                Log.Error("解析 YTS URL 失败: {URL}", requestUrl);
             }
         }
 
         if (ConfigManager.Config.BlockedUrls.Any(blockedUrl => requestUrl.StartsWith(blockedUrl)))
         {
-            Log.Warning("URL Is Blocked: {url}", requestUrl);
+            Log.Warning("URL 被屏蔽: {url}", requestUrl);
             requestUrl = ConfigManager.Config.BlockRedirect;
         }
 
         var videoInfo = await VideoId.GetVideoId(requestUrl, avPro);
         if (videoInfo == null)
         {
-            Log.Information("Failed to get Video Info for URL: {URL}", requestUrl);
+            Log.Information("无法获取 URL 的视频信息: {URL}", requestUrl);
             return;
         }
 
@@ -96,21 +96,21 @@ public class ApiController : WebApiController
 
         if (string.IsNullOrEmpty(videoInfo.VideoId))
         {
-            Log.Information("Failed to get Video ID: Bypassing.");
+            Log.Information("无法获取视频 ID：跳过。");
             await HttpContext.SendStringAsync(string.Empty, "text/plain", Encoding.UTF8);
             return;
         }
 
         if (requestUrl.StartsWith("https://mightygymcdn.nyc3.cdn.digitaloceanspaces.com"))
         {
-            Log.Information("URL Is Mighty Gym: Bypassing.");
+            Log.Information("检测到 Mighty Gym URL：跳过。");
             await HttpContext.SendStringAsync(string.Empty, "text/plain", Encoding.UTF8);
             return;
         }
 
         if (source == "resonite")
         {
-            Log.Information("Request sent from resonite sending json.");
+            Log.Information("来自 resonite 的请求：发送 JSON。");
             await HttpContext.SendStringAsync(await VideoId.GetURLResonite(requestUrl), "text/plain", Encoding.UTF8);
             return;
         }
@@ -124,7 +124,7 @@ public class ApiController : WebApiController
         else if (requestUrl.Contains(".imvrcdn.com") ||
                  (requestUrl.Contains(".illumination.media") && !requestUrl.StartsWith("https://yt.illumination.media")))
         {
-            Log.Information("URL Is Illumination media: Bypassing.");
+            Log.Information("检测到 Illumination 媒体 URL：跳过。");
             await HttpContext.SendStringAsync(string.Empty, "text/plain", Encoding.UTF8);
             return;
         }
@@ -132,7 +132,7 @@ public class ApiController : WebApiController
         // bypass vfi - cinema 
         if (requestUrl.StartsWith("https://virtualfilm.institute"))
         {
-            Log.Information("URL Is VFI -Cinema: Bypassing.");
+            Log.Information("检测到 VFI -Cinema URL：跳过。");
             await HttpContext.SendStringAsync(string.Empty, "text/plain", Encoding.UTF8);
             return;
         }
@@ -158,12 +158,12 @@ public class ApiController : WebApiController
             await VideoTools.Prefetch(response);
             if (ConfigManager.Config.ytdlDelay > 0)
             {
-                Log.Information("Delaying YouTube URL response for configured {delay} seconds, this can help with video errors, don't ask why", ConfigManager.Config.ytdlDelay);
+                Log.Information("延迟 {delay} 秒后返回 YouTube URL（可帮助解决视频错误）", ConfigManager.Config.ytdlDelay);
                 await Task.Delay(ConfigManager.Config.ytdlDelay * 1000);
             }
         }
 
-        Log.Information("Responding with URL: {URL}", response);
+        Log.Information("返回 URL: {URL}", response);
         await HttpContext.SendStringAsync(response, "text/plain", Encoding.UTF8);
         // check if file is cached again to handle race condition
         (isCached, _, _) = GetCachedFile(videoInfo.VideoId, avPro);

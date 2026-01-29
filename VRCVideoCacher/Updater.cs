@@ -22,45 +22,44 @@ public class Updater
 
     public static async Task CheckForUpdates()
     {
-        Log.Information("Checking for updates...");
+        Log.Information("检查更新...");
         var isDebug = false;
 #if DEBUG
             isDebug = true;
 #endif
         if (Program.Version.Contains("-dev") || isDebug)
         {
-            Log.Information("Running in dev mode. Skipping update check.");
+            Log.Information("处于开发模式，跳过更新检查。");
             return;
         }
         using var response = await HttpClient.GetAsync(UpdateUrl);
         if (!response.IsSuccessStatusCode)
         {
-            Log.Warning("Failed to check for updates.");
+            Log.Warning("检查更新失败。");
             return;
         }
         var data = await response.Content.ReadAsStringAsync();
         var latestRelease = JsonConvert.DeserializeObject<GitHubRelease>(data);
         if (latestRelease == null)
         {
-            Log.Error("Failed to parse update response.");
+            Log.Error("解析更新响应失败。");
             return;
         }
         var latestVersion = SemVersion.Parse(latestRelease.tag_name);
         var currentVersion = SemVersion.Parse(Program.Version);
-        Log.Information("Latest release: {Latest}, Installed Version: {Installed}", latestVersion, currentVersion);
+        Log.Information("最新版本: {Latest}, 已安装版本: {Installed}", latestVersion, currentVersion);
         if (SemVersion.ComparePrecedence(currentVersion, latestVersion) >= 0)
         {
-            Log.Information("No updates available.");
+            Log.Information("没有可用更新。");
             return;
         }
-        Log.Information("Update available: {Version}", latestVersion);
+        Log.Information("发现更新: {Version}", latestVersion);
         if (ConfigManager.Config.AutoUpdate)
         {
             await UpdateAsync(latestRelease);
             return;
         }
-        Log.Information(
-            "Auto Update is disabled. Please update manually from the releases page. https://github.com/EllyVR/VRCVideoCacher/releases");
+        Log.Information("自动更新已禁用。请从 releases 页面手动更新： https://github.com/EllyVR/VRCVideoCacher/releases");
     }
         
     public static void Cleanup()
@@ -92,16 +91,16 @@ public class Updater
 
                 if (await HashCheck(asset.digest))
                 {
-                    Log.Information("Hash check passed, Replacing binary.");
+                    Log.Information("哈希校验通过，替换二进制。");
                     File.Move(TempFilePath, FilePath);
                 }
                 else
                 {
-                    Log.Information("Hash check failed, Reverting update.");
+                    Log.Information("哈希校验失败，回滚更新。");
                     File.Move(BackupFilePath,FilePath);
                     return;
                 }
-                Log.Information("Updated to version {Version}", release.tag_name);
+                Log.Information("已更新到版本 {Version}", release.tag_name);
                 if (!OperatingSystem.IsWindows())
                     FileTools.MarkFileExecutable(FilePath);
 
@@ -119,7 +118,7 @@ public class Updater
             }
             catch (Exception ex)
             {
-                Log.Error("Failed to update: {Message}", ex.Message);
+                Log.Error("更新失败: {Message}", ex.Message);
                 File.Move(BackupFilePath, FilePath);
                 Console.ReadKey();
             }
@@ -134,7 +133,7 @@ public class Updater
         var hashString = Convert.ToHexString(hashBytes);
         githubHash = githubHash.Split(':')[1];
         var hashMatches = string.Equals(githubHash, hashString, StringComparison.OrdinalIgnoreCase);
-        Log.Information("FileHash: {FileHash} GitHubHash: {GitHubHash} HashMatch: {HashMatches}", hashString, githubHash, hashMatches);
+        Log.Information("文件哈希: {FileHash} GitHub 哈希: {GitHubHash} 是否匹配: {HashMatches}", hashString, githubHash, hashMatches);
         return hashMatches;
     }
 }

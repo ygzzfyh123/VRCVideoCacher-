@@ -35,7 +35,7 @@ public class BulkPreCache
             using var response = await HttpClient.GetAsync(url);
             if (!response.IsSuccessStatusCode)
             {
-                Log.Information("Failed to download {Url}: {ResponseStatusCode}", url, response.StatusCode);
+                Log.Information("下载失败 {Url}: HTTP {ResponseStatusCode}", url, response.StatusCode);
                 return;
             }
 
@@ -43,11 +43,11 @@ public class BulkPreCache
             var files = JsonConvert.DeserializeObject<List<DownloadInfo>>(content);
             if (files == null || files.Count == 0)
             {
-                Log.Information("No files to download for {URL}", url);
+                Log.Information("没有要下载的文件: {URL}", url);
                 return;
             }
             await DownloadVideos(files);
-            Log.Information("All {count} files for {URL} are up to date.", files.Count, url);
+            Log.Information("所有 {count} 个文件均为最新: {URL}", files.Count, url);
         }
     }
 
@@ -70,22 +70,22 @@ public class BulkPreCache
                         (file.Size > 0 && file.Size != fileInfo.Length))
                     {
                         var percentage = Math.Round((double)index / fileCount * 100, 2);
-                        Log.Information("Progress: {Percentage}%", percentage);
-                        Log.Information("Updating {FileName}", file.FileName);
+                        Log.Information("进度: {Percentage}%", percentage);
+                        Log.Information("正在更新 {FileName}", file.FileName);
                         await DownloadFile(file);
                     }
                 }
                 else
                 {
                     var percentage = Math.Round((double)index / fileCount * 100, 2);
-                    Log.Information("Progress: {Percentage}%", percentage);
-                    Log.Information("Downloading {FileName}", file.FileName);
+                    Log.Information("进度: {Percentage}%", percentage);
+                    Log.Information("正在下载 {FileName}", file.FileName);
                     await DownloadFile(file);
                 }
             }
             catch (HttpRequestException ex)
             {
-                Log.Error("Error downloading {FileName}: {ExMessage}", file.FileName, ex.Message);
+                Log.Error("下载 {FileName} 时出错: {ExMessage}", file.FileName, ex.Message);
             }
         }
     }
@@ -95,7 +95,7 @@ public class BulkPreCache
         using var response = await HttpClient.GetAsync(fileInfo.Url);
         if (!response.IsSuccessStatusCode)
         {
-            Log.Information("Failed to download {Url}: {ResponseStatusCode}", fileInfo.Url, response.StatusCode);
+            Log.Information("下载失败 {Url}: HTTP {ResponseStatusCode}", fileInfo.Url, response.StatusCode);
             return;
         }
         var fileStream = new FileStream(fileInfo.FilePath, FileMode.Create, FileAccess.Write);

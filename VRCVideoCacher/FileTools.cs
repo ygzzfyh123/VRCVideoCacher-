@@ -32,12 +32,12 @@ public class FileTools
         }
         else if (OperatingSystem.IsLinux())
         { 
-            var compatPath = GetCompatPath("438100") ?? throw new Exception("Unable to find VRChat compat data"); 
+            var compatPath = GetCompatPath("438100") ?? throw new Exception("无法找到 VRChat 兼容数据");
             localLowPath = Path.Join(compatPath, "pfx/drive_c/users/steamuser/AppData/LocalLow");
         }
         else
-        { 
-            throw new NotImplementedException("Unknown platform");
+        {
+            throw new NotImplementedException("未知平台");
         }
         YtdlPathVrc = Path.Join(localLowPath, "VRChat/VRChat/Tools/yt-dlp.exe");
         BackupPathVrc = Path.Join(localLowPath, "VRChat/VRChat/Tools/yt-dlp.exe.bkp");
@@ -48,13 +48,13 @@ public class FileTools
         const string appid = "2519830";
         if (!OperatingSystem.IsWindows())
         {
-            Log.Error("GetResonitePath is currently only supported on Windows");
+            Log.Error("GetResonitePath 目前仅在 Windows 上受支持");
             return null;
         }
         const string libraryFolders = @"C:\Program Files (x86)\Steam\steamapps\libraryfolders.vdf";
         if (!Path.Exists(libraryFolders))
         {
-            Log.Error("GetResonitePath: Steam libraryfolders.vdf not found at expected location: {Path}", libraryFolders);
+            Log.Error("GetResonitePath: 未在预期位置找到 Steam 的 libraryfolders.vdf: {Path}", libraryFolders);
             return null;
         }
 
@@ -73,7 +73,7 @@ public class FileTools
         }
         catch (Exception e)
         {
-            Log.Error("GetResonitePath: Exception while reading libraryfolders.vdf: {Error}", e.Message);
+            Log.Error("GetResonitePath: 读取 libraryfolders.vdf 时发生异常: {Error}", e.Message);
         }
 
         return null;
@@ -92,11 +92,11 @@ public class FileTools
         var steam = steamPaths.First();
         if (!Path.Exists(steam))
         {
-            Log.Error("Steam folder doesn't exist!");
+            Log.Error("未找到 Steam 文件夹！");
             return null;
         }
 
-        Log.Debug("Using steam path: {Steam}", steam);
+        Log.Debug("使用的 Steam 路径: {Steam}", steam);
         var libraryFolders = Path.Join(steam, "steamapps/libraryfolders.vdf");
         var stream = File.OpenRead(libraryFolders);
 
@@ -165,7 +165,7 @@ public class FileTools
     {
         if (!Directory.Exists(Path.GetDirectoryName(ytdlPath) ?? string.Empty))
         {
-            Log.Error("YT-DLP directory does not exist, Game may not be installed. {path}", ytdlPath);
+            Log.Error("YT-DLP 目录不存在，游戏可能未安装：{path}", ytdlPath);
             return;
         }
         if (File.Exists(ytdlPath))
@@ -173,7 +173,7 @@ public class FileTools
             var hash = Program.ComputeBinaryContentHash(File.ReadAllBytes(ytdlPath));
             if (hash == Program.YtdlpHash)
             {
-                Log.Information("YT-DLP is already patched.");
+            Log.Information("YT-DLP 已经被替换。");
                 return;
             }
             if (File.Exists(backupPath))
@@ -182,7 +182,7 @@ public class FileTools
                 File.Delete(backupPath);
             }
             File.Move(ytdlPath, backupPath);
-            Log.Information("Backed up YT-DLP.");
+            Log.Information("已备份原始 YT-DLP。");
         }
         using var stream = Program.GetYtDlpStub();
         using var fileStream = File.Create(ytdlPath);
@@ -191,7 +191,7 @@ public class FileTools
         var attr = File.GetAttributes(ytdlPath);
         attr |= FileAttributes.ReadOnly;
         File.SetAttributes(ytdlPath, attr);
-        Log.Information("Patched YT-DLP.");
+        Log.Information("已安装替代 YT-DLP。");
     }
 
     private static void RestoreYtdl(string ytdlPath, string backupPath)
@@ -199,7 +199,7 @@ public class FileTools
         if (!File.Exists(backupPath))
             return;
         
-        Log.Information("Restoring yt-dlp...");
+        Log.Information("正在还原 yt-dlp...");
         if (File.Exists(ytdlPath))
         {
             File.SetAttributes(ytdlPath, FileAttributes.Normal);
@@ -209,6 +209,6 @@ public class FileTools
         var attr = File.GetAttributes(ytdlPath);
         attr &= ~FileAttributes.ReadOnly;
         File.SetAttributes(ytdlPath, attr);
-        Log.Information("Restored YT-DLP.");
+        Log.Information("已还原 YT-DLP。");
     }
 }

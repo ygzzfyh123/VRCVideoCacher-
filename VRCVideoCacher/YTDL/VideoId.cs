@@ -54,7 +54,7 @@ public class VideoId
                 var videoUrl = res.RequestMessage?.RequestUri?.ToString();
                 if (string.IsNullOrEmpty(videoUrl))
                 {
-                    Log.Error("Failed to get video ID from PypyDance URL: {URL} Response: {Response} - {Data}", url, res.StatusCode, await res.Content.ReadAsStringAsync());
+                    Log.Error("从 PypyDance URL 获取视频 ID 失败: {URL} 返回码: {Response} - {Data}", url, res.StatusCode, await res.Content.ReadAsStringAsync());
                     return null;
                 }
                 var uri = new Uri(videoUrl);
@@ -70,7 +70,7 @@ public class VideoId
             }
             catch
             {
-                Log.Error("Failed to get video ID from PypyDance URL: {URL}", url);
+                Log.Error("从 PypyDance URL 获取视频 ID 失败: {URL}", url);
                 return null;
             }
         }
@@ -107,7 +107,7 @@ public class VideoId
             }
             if (string.IsNullOrEmpty(videoId))
             {
-                Log.Error("Failed to parse video ID from YouTube URL: {URL}", url);
+                Log.Error("无法从 YouTube URL 解析视频 ID: {URL}", url);
                 return null;
             }
             videoId = videoId.Length > 11 ? videoId.Substring(0, 11) : videoId;
@@ -156,16 +156,16 @@ public class VideoId
         var error = await process.StandardError.ReadToEndAsync();
         await process.WaitForExitAsync();
         if (process.ExitCode != 0)
-            throw new Exception($"Failed to get video ID: {error.Trim()}");
+            throw new Exception($"获取视频 ID 失败: {error.Trim()}");
         if (string.IsNullOrEmpty(rawData))
-            throw new Exception("Failed to get video ID");
+            throw new Exception("获取视频 ID 失败");
         var data = JsonConvert.DeserializeObject<dynamic>(rawData);
         if (data is null || data.id is null || data.duration is null)
-            throw new Exception("Failed to get video ID");
+            throw new Exception("获取视频 ID 失败");
         if (data.is_live is true)
-            throw new Exception("Failed to get video ID: Video is a stream");
+            throw new Exception("获取视频 ID 失败：视频为直播流");
         if (data.duration > ConfigManager.Config.CacheYouTubeMaxLength * 60)
-            throw new Exception($"Failed to get video ID: Video is longer than configured max length ({data.duration / 60}/{ConfigManager.Config.CacheYouTubeMaxLength})");
+            throw new Exception($"获取视频 ID 失败：视频长度超过配置的最大值 ({data.duration / 60}/{ConfigManager.Config.CacheYouTubeMaxLength})");
         
         return data.id;
     }
@@ -202,19 +202,19 @@ public class VideoId
         var error = await process.StandardError.ReadToEndAsync();
         error = error.Trim();
         await process.WaitForExitAsync();
-        Log.Information("Started yt-dlp with args: {args}", process.StartInfo.Arguments);
+        Log.Information("已使用参数启动 yt-dlp: {args}", process.StartInfo.Arguments);
         
         if (process.ExitCode != 0)
         {
             if (error.Contains("Sign in to confirm you’re not a bot"))
-                Log.Error("Fix this error by following these instructions: https://github.com/clienthax/VRCVideoCacherBrowserExtension");
+                Log.Error("请按照此说明修复该错误: https://github.com/clienthax/VRCVideoCacherBrowserExtension");
 
             return string.Empty;
         }
         
         if (IsYouTubeUrl(url) && ConfigManager.Config.ytdlDelay > 0)
         {
-            Log.Information("Delaying YouTube URL response for configured {delay} seconds, this can help with video errors, don't ask why", ConfigManager.Config.ytdlDelay);
+            Log.Information("已延迟 {delay} 秒后返回 YouTube URL（可帮助解决视频错误）", ConfigManager.Config.ytdlDelay);
             await Task.Delay(ConfigManager.Config.ytdlDelay * 1000);
         }
 
@@ -232,7 +232,7 @@ public class VideoId
         // if url contains "results?" then it's a search
         if (videoInfo.VideoUrl.Contains("results?") && videoInfo.UrlType == UrlType.YouTube)
         {
-            const string message = "URL is a search query, cannot get video URL.";
+            const string message = "URL 是搜索查询，无法获取视频 URL。";
             return new Tuple<string, bool>(message, false);
         }
 
@@ -276,12 +276,12 @@ public class VideoId
         var error = await process.StandardError.ReadToEndAsync();
         error = error.Trim();
         await process.WaitForExitAsync();
-        Log.Information("Started yt-dlp with args: {args}", process.StartInfo.Arguments);
+        Log.Information("已使用参数启动 yt-dlp: {args}", process.StartInfo.Arguments);
         
         if (process.ExitCode != 0)
         {
             if (error.Contains("Sign in to confirm you’re not a bot"))
-                Log.Error("Fix this error by following these instructions: https://github.com/clienthax/VRCVideoCacherBrowserExtension");
+                Log.Error("请按照此说明修复该错误: https://github.com/clienthax/VRCVideoCacherBrowserExtension");
 
             return new Tuple<string, bool>(error, false);
         }

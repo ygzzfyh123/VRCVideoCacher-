@@ -1,10 +1,14 @@
 using System.Reflection;
 using System.Security.Cryptography;
+using System.Diagnostics;
+using System.Linq;
 using Serilog;
 using Serilog.Templates;
 using Serilog.Templates.Themes;
 using VRCVideoCacher.API;
 using VRCVideoCacher.YTDL;
+using System.Threading;
+using System.Windows.Forms;
 
 namespace VRCVideoCacher;
 
@@ -20,20 +24,33 @@ internal static class Program
 
     public static async Task Main(string[] args)
     {
-        Console.Title = $"VRCVideoCacher v{Version}";
+        Console.Title = $"VRC视频缓存器 v{Version}";
         Log.Logger = new LoggerConfiguration()
             .MinimumLevel.Debug()
             .WriteTo.Console(new ExpressionTemplate(
                 "[{@t:HH:mm:ss} {@l:u3} {Coalesce(Substring(SourceContext, LastIndexOf(SourceContext, '.') + 1),'<none>')}] {@m}\n{@x}",
                 theme: TemplateTheme.Literate))
             .CreateLogger();
+        // 立即处理 --config 参数以便在进行网络/更新检查前弹出 GUI
+        if (args.Contains("--config"))
+        {
+            ConfigForm.RunForm();
+            return;
+        }
         const string elly = "Elly";
         const string natsumi = "Natsumi";
         const string haxy = "Haxy";
-        Logger.Information("VRCVideoCacher version {Version} created by {Elly}, {Natsumi}, {Haxy}", Version, elly, natsumi, haxy);
+        Logger.Information("VRCVideoCacher 版本 {Version}，由 {Elly}, {Natsumi}, {Haxy} 制作", Version, elly, natsumi, haxy);
         
         Directory.CreateDirectory(DataPath);
-        await Updater.CheckForUpdates();
+        try
+        {
+            await Updater.CheckForUpdates();
+        }
+        catch (Exception ex)
+        {
+            Logger.Warning("检查更新失败（网络或 DNS 问题），将继续启动：{Message}", ex.Message);
+        }
         Updater.Cleanup();
         if (Environment.CommandLine.Contains("--Reset"))
         {
@@ -64,8 +81,64 @@ internal static class Program
         FileTools.BackupAllYtdl();
         await BulkPreCache.DownloadFileList();
 
+        // --- Watcher / scheduled task CLI handling ---
+        // 运行监视器：用于在游戏启动时自动启动主程序
+        if (args.Contains("--watch"))
+        {
+            var gameArg = args.FirstOrDefault(a => a.StartsWith("--watch-game="));
+            var gameExe = gameArg != null ? gameArg.Split('=', 2)[1] : "VRChat.exe";
+            await ProcessWatcher.RunWatcher(gameExe);
+            return;
+        }
+
+        if (args.Contains("--config"))
+        {
+            // 打开配置 GUI 窗口并在关闭后退出
+            ConfigForm.RunForm();
+            return;
+        }
+
+        // 在当前用户登录时创建一个 scheduled task 来启动本程序的 watcher 模式
+        if (args.Contains("--install-watch-task"))
+        {
+            var exePath = Environment.ProcessPath;
+            var taskName = "VRCVideoCacherWatcher";
+            var argumentsStr = "--watch";
+            var schtasksCmd = $"schtasks /Create /SC ONLOGON /RL HIGHEST /F /TN \"{taskName}\" /TR \"\\\"{exePath}\\\" {argumentsStr}\"";
+            try
+            {
+                var proc = Process.Start(new ProcessStartInfo("cmd.exe", $"/C {schtasksCmd}") { CreateNoWindow = true, UseShellExecute = false });
+                proc?.WaitForExit();
+                Logger.Information("已创建计划任务 {TaskName}", taskName);
+            }
+            catch (Exception ex)
+            {
+                Logger.Error("创建计划任务失败: {Msg}", ex.Message);
+            }
+
+            Environment.Exit(0);
+        }
+
+        if (args.Contains("--uninstall-watch-task"))
+        {
+            var taskName = "VRCVideoCacherWatcher";
+            var schtasksCmd = $"schtasks /Delete /TN \"{taskName}\" /F";
+            try
+            {
+                var proc = Process.Start(new ProcessStartInfo("cmd.exe", $"/C {schtasksCmd}") { CreateNoWindow = true, UseShellExecute = false });
+                proc?.WaitForExit();
+                Logger.Information("已删除计划任务 {TaskName}", taskName);
+            }
+            catch (Exception ex)
+            {
+                Logger.Error("删除计划任务失败: {Msg}", ex.Message);
+            }
+
+            Environment.Exit(0);
+        }
+
         if (ConfigManager.Config.ytdlUseCookies && !IsCookiesEnabledAndValid())
-            Logger.Warning("No cookies found, please use the browser extension to send cookies or disable \"ytdlUseCookies\" in config.");
+            Logger.Warning("未找到 cookies，请使用浏览器扩展发送 cookies 或在配置中禁用 \"ytdlUseCookies\"。");
 
         CacheManager.Init();
 
@@ -74,7 +147,7 @@ internal static class Program
             _ = WinGet.TryInstallPackages();
 
         if (YtdlManager.GlobalYtdlConfigExists())
-            Logger.Error("Global yt-dlp config file found in \"%AppData%\\yt-dlp\". Please delete it to avoid conflicts with VRCVideoCacher.");
+            Logger.Error("检测到全局 yt-dlp 配置文件 \"%AppData%\\yt-dlp\"。请删除以避免与 VRCVideoCacher 冲突。");
         
         await Task.Delay(-1);
     }
@@ -134,6 +207,6 @@ internal static class Program
     private static void OnAppQuit()
     {
         FileTools.RestoreAllYtdl();
-        Logger.Information("Exiting...");
+        Logger.Information("正在退出...");
     }
 }

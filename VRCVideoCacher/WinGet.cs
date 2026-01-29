@@ -19,10 +19,10 @@ public class WinGet
     [SupportedOSPlatform("windows")]
     public static async Task TryInstallPackages()
     {
-        Log.Information("Checking for missing codec packages...");
+        Log.Information("检查缺失的解码器包...");
         if (!IsOurPackagesInstalled())
         {
-            Log.Information("Installing missing codec packages...");
+            Log.Information("正在安装缺失的解码器包...");
             await InstallAllPackages();
         }
     }
@@ -37,7 +37,7 @@ public class WinGet
             }
         }
 
-        Log.Information("Codec packages are already installed.");
+        Log.Information("解码器包已安装。");
         return true;
     }
 
@@ -65,7 +65,7 @@ public class WinGet
         }
         catch (Exception ex)
         {
-            Log.Error(ex.Message);
+            Log.Error("检测包安装状态时出错: {Message}", ex.Message);
             return false;
         }
     }
@@ -114,7 +114,7 @@ public class WinGet
         }
         catch (Exception ex)
         {
-            Log.Error(ex.Message);
+            Log.Error("安装包时出错: {Message}", ex.Message);
         }
     }
 }

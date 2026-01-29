@@ -82,22 +82,22 @@ public class VideoDownloader
         }
         catch (Exception ex)
         {
-            Log.Error("Not downloading YouTube video: {URL} {ex}", url, ex.Message);
+            Log.Error("不下载 YouTube 视频: {URL} 错误: {ex}", url, ex.Message);
             return;
         }
 
         if (File.Exists(TempDownloadMp4Path))
         {
-            Log.Error("Temp file already exists, deleting...");
+            Log.Error("临时文件已存在，正在删除...");
             File.Delete(TempDownloadMp4Path);
         }
         if (File.Exists(TempDownloadWebmPath))
         {
-            Log.Error("Temp file already exists, deleting...");
+            Log.Error("临时文件已存在，正在删除...");
             File.Delete(TempDownloadWebmPath);
         }
 
-        Log.Information("Downloading YouTube Video: {URL}", url);
+        Log.Information("正在下载 YouTube 视频: {URL}", url);
 
         var additionalArgs = ConfigManager.Config.ytdlAdditionalArgs;
         var cookieArg = string.Empty;
@@ -144,9 +144,9 @@ public class VideoDownloader
         error = error.Trim();
         if (process.ExitCode != 0)
         {
-            Log.Error("Failed to download YouTube Video: {exitCode} {URL} {error}", process.ExitCode, url, error);
+            Log.Error("下载 YouTube 视频失败: {exitCode} {URL} {error}", process.ExitCode, url, error);
             if (error.Contains("Sign in to confirm you’re not a bot"))
-                Log.Error("Fix this error by following these instructions: https://github.com/clienthax/VRCVideoCacherBrowserExtension");
+                Log.Error("请按照此说明修复该错误: https://github.com/clienthax/VRCVideoCacherBrowserExtension");
             
             return;
         }
@@ -156,7 +156,7 @@ public class VideoDownloader
         var filePath = Path.Combine(CacheManager.CachePath, fileName);
         if (File.Exists(filePath))
         {
-            Log.Error("File already exists, canceling...");
+            Log.Error("文件已存在，取消下载...");
             try
             {
                 if (File.Exists(TempDownloadMp4Path))
@@ -166,7 +166,7 @@ public class VideoDownloader
             }
             catch (Exception ex)
             {
-                Log.Error("Failed to delete temp file: {ex}", ex.Message);
+                Log.Error("删除临时文件失败: {ex}", ex.Message);
             }
             return;
         }
@@ -181,39 +181,49 @@ public class VideoDownloader
         }
         else
         {
-            Log.Error("Failed to download YouTube Video: {URL}", url);
+            Log.Error("下载 YouTube 视频失败: {URL}", url);
             return;
         }
 
         CacheManager.AddToCache(fileName);
-        Log.Information("YouTube Video Downloaded: {URL}", $"{ConfigManager.Config.ytdlWebServerURL}/{fileName}");
+        Log.Information("YouTube 视频下载完成: {URL}", $"{ConfigManager.Config.ytdlWebServerURL}/{fileName}");
     }
     
     private static async Task DownloadVideoWithId(VideoInfo videoInfo)
     {
         if (File.Exists(TempDownloadMp4Path))
         {
-            Log.Error("Temp file already exists, deleting...");
+            Log.Error("检测到临时文件，正在删除...");
             File.Delete(TempDownloadMp4Path);
         }
         if (File.Exists(TempDownloadWebmPath))
         {
-            Log.Error("Temp file already exists, deleting...");
+            Log.Error("检测到临时文件，正在删除...");
+            File.Delete(TempDownloadWebmPath);
+        }
+        if (File.Exists(TempDownloadMp4Path))
+        {
+            Log.Error("检测到临时文件，正在删除...");
+            File.Delete(TempDownloadMp4Path);
+        }
+        if (File.Exists(TempDownloadWebmPath))
+        {
+            Log.Error("检测到临时文件，正在删除...");
             File.Delete(TempDownloadWebmPath);
         }
 
-        Log.Information("Downloading Video: {URL}", videoInfo.VideoUrl);
+        Log.Information("正在下载视频: {URL}", videoInfo.VideoUrl);
         var url = videoInfo.VideoUrl;
         var response = await HttpClient.GetAsync(url);
         if (response.StatusCode == HttpStatusCode.Redirect)
         {
-            Log.Information("Redirected to: {URL}", response.Headers.Location);
+            Log.Information("重定向到: {URL}", response.Headers.Location);
             url = response.Headers.Location?.ToString();
             response = await HttpClient.GetAsync(url);
         }
         if (!response.IsSuccessStatusCode)
         {
-            Log.Error("Failed to download video: {URL}", url);
+            Log.Error("下载视频失败: {URL}", url);
             return;
         }
 
@@ -236,9 +246,9 @@ public class VideoDownloader
         }
         else
         {
-            Log.Error("Failed to download Video: {URL}", url);
+            Log.Error("下载视频失败: {URL}", url);
             return;
         }
-        Log.Information("Video Downloaded: {URL}", $"{ConfigManager.Config.ytdlWebServerURL}/{fileName}");
+        Log.Information("视频下载完成: {URL}", $"{ConfigManager.Config.ytdlWebServerURL}/{fileName}");
     }
 }

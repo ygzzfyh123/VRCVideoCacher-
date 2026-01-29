@@ -26,7 +26,7 @@ public class YtdlManager
 
         // try to locate in PATH
         if (string.IsNullOrEmpty(ConfigManager.Config.ytdlPath))
-            YtdlPath = FileTools.LocateFile(OperatingSystem.IsWindows() ? "yt-dlp.exe" : "yt-dlp") ?? throw new FileNotFoundException("Unable to find yt-dlp");
+            YtdlPath = FileTools.LocateFile(OperatingSystem.IsWindows() ? "yt-dlp.exe" : "yt-dlp") ?? throw new FileNotFoundException("无法找到 yt-dlp");
         else if (Path.IsPathRooted(ConfigManager.Config.ytdlPath))
             YtdlPath = ConfigManager.Config.ytdlPath;
         else
@@ -53,38 +53,38 @@ public class YtdlManager
 
     public static async Task TryDownloadYtdlp()
     {
-        Log.Information("Checking for YT-DLP updates...");
+        Log.Information("正在检查 YT-DLP 更新...");
         using var response = await HttpClient.GetAsync(YtdlpApiUrl);
         if (!response.IsSuccessStatusCode)
         {
-            Log.Warning("Failed to check for YT-DLP updates.");
+            Log.Warning("检查 YT-DLP 更新失败。");
             return;
         }
         var data = await response.Content.ReadAsStringAsync();
         var json = JsonConvert.DeserializeObject<GitHubRelease>(data);
         if (json == null)
         {
-            Log.Error("Failed to parse YT-DLP update response.");
+            Log.Error("解析 YT-DLP 更新响应失败。");
             return;
         }
 
         var currentYtdlVersion = Versions.CurrentVersion.ytdlp;
         if (!File.Exists(YtdlPath))
-            currentYtdlVersion = "Not Installed";
+            currentYtdlVersion = "未安装";
 
         var latestVersion = json.tag_name;
-        Log.Information("YT-DLP Current: {Installed} Latest: {Latest}", currentYtdlVersion, latestVersion);
+        Log.Information("YT-DLP 当前: {Installed}，最新: {Latest}", currentYtdlVersion, latestVersion);
         if (string.IsNullOrEmpty(latestVersion))
         {
-            Log.Warning("Failed to check for YT-DLP updates.");
+            Log.Warning("检查 YT-DLP 更新失败。");
             return;
         }
         if (currentYtdlVersion == latestVersion)
         {
-            Log.Information("YT-DLP is up to date.");
+            Log.Information("YT-DLP 已是最新。");
             return;
         }
-        Log.Information("YT-DLP is outdated. Updating...");
+        Log.Information("YT-DLP 有可用更新，正在更新...");
 
         await DownloadYtdl(json);
     }
@@ -92,41 +92,41 @@ public class YtdlManager
     public static async Task TryDownloadDeno()
     {
         if (string.IsNullOrEmpty(ConfigManager.UtilsPath))
-            throw new Exception("Failed to get Utils path");
+            throw new Exception("获取 Utils 路径失败");
         
         var denoPath = Path.Combine(ConfigManager.UtilsPath, OperatingSystem.IsWindows() ? "deno.exe" : "deno");
         
         using var apiResponse = await HttpClient.GetAsync(DenoApiUrl);
         if (!apiResponse.IsSuccessStatusCode)
         {
-            Log.Warning("Failed to get latest ffmpeg release: {ResponseStatusCode}", apiResponse.StatusCode);
+            Log.Warning("获取最新 Ffmpeg 发布信息失败: {ResponseStatusCode}", apiResponse.StatusCode);
             return;
         }
         var data = await apiResponse.Content.ReadAsStringAsync();
         var json = JsonConvert.DeserializeObject<GitHubRelease>(data);
         if (json == null)
         {
-            Log.Error("Failed to parse deno release response.");
+            Log.Error("解析 deno 发布响应失败。");
             return;
         }
         
         var currentDenoVersion = Versions.CurrentVersion.deno;
         if (!File.Exists(denoPath))
-            currentDenoVersion = "Not Installed";
+            currentDenoVersion = "未安装";
 
         var latestVersion = json.tag_name;
-        Log.Information("Deno Current: {Installed} Latest: {Latest}", currentDenoVersion, latestVersion);
+        Log.Information("Deno 当前: {Installed}，最新: {Latest}", currentDenoVersion, latestVersion);
         if (string.IsNullOrEmpty(latestVersion))
         {
-            Log.Warning("Failed to check for Deno updates.");
+            Log.Warning("检查 Deno 更新失败。");
             return;
         }
         if (currentDenoVersion == latestVersion)
         {
-            Log.Information("Deno is up to date.");
+            Log.Information("Deno 已是最新。");
             return;
         }
-        Log.Information("Deno is outdated. Updating...");
+        Log.Information("Deno 有可用更新，正在更新...");
 
         string assetName;
         if (OperatingSystem.IsWindows())
@@ -144,24 +144,24 @@ public class YtdlManager
                     assetName = "deno-aarch64-unknown-linux-gnu.zip";
                     break;
                 default:
-                    Log.Error("Unsupported architecture {OSArchitecture}", RuntimeInformation.OSArchitecture);
+                    Log.Error("不支持的架构 {OSArchitecture}", RuntimeInformation.OSArchitecture);
                     return;
             }
         }
         else
         {
-            Log.Error("Unsupported operating system {OperatingSystem}", Environment.OSVersion);
+            Log.Error("不支持的操作系统 {OperatingSystem}", Environment.OSVersion);
             return;
         }
         // deno-x86_64-pc-windows-msvc.zip -> deno-x86_64-pc-windows-msvc
         var assets = json.assets.Where(asset => asset.name == assetName).ToList();
         if (assets.Count < 1)
         {
-            Log.Error("Unable to find Deno asset {AssetName} for this platform.", assetName);
+            Log.Error("无法为该平台找到 Deno 资源 {AssetName}。", assetName);
             return;
         }
 
-        Log.Information("Downloading Deno...");
+        Log.Information("正在下载 Deno...");
         var url = assets.First().browser_download_url;
 
         using var response = await HttpClient.GetAsync(url);
@@ -172,7 +172,7 @@ public class YtdlManager
             if (reader.Entry.Key == null || reader.Entry.IsDirectory)
                 continue;
             
-            Log.Debug("Extracting file {Name} ({Size} bytes)", reader.Entry.Key, reader.Entry.Size);
+            Log.Debug("正在提取文件 {Name} ({Size} 字节)", reader.Entry.Key, reader.Entry.Size);
             var path = Path.Combine(ConfigManager.UtilsPath, reader.Entry.Key);
             await using var outputStream = new FileStream(path, FileMode.Create, FileAccess.Write, FileShare.None);
             await using var entryStream = reader.OpenEntryStream();
@@ -180,17 +180,17 @@ public class YtdlManager
             FileTools.MarkFileExecutable(path);
             Versions.CurrentVersion.deno = json.tag_name;
             Versions.Save();
-            Log.Information("Deno downloaded and extracted.");
+            Log.Information("Deno 下载并提取完成。");
             return;
         }
 
-        Log.Error("Failed to extract Deno files.");
+        Log.Error("提取 Deno 文件失败。");
     }
 
     public static async Task TryDownloadFfmpeg()
     {
         if (string.IsNullOrEmpty(ConfigManager.UtilsPath))
-            throw new Exception("Failed to get Utils path");
+            throw new Exception("获取 Utils 路径失败");
 
         var ffmpegPath = Path.Combine(ConfigManager.UtilsPath, OperatingSystem.IsWindows() ? "ffmpeg.exe" : "ffmpeg");
 
@@ -204,7 +204,7 @@ public class YtdlManager
         }
         catch (Exception ex)
         {
-            Log.Warning($"Skipping ffmpeg download: {ex.GetType().Name}: {ex.Message}");
+            Log.Warning($"跳过 ffmpeg 下载: {ex.GetType().Name}: {ex.Message}");
             return;
         }
 
@@ -214,34 +214,34 @@ public class YtdlManager
         using var apiResponse = await HttpClient.GetAsync(OperatingSystem.IsWindows() ? FfmpegApiUrl : FfmpegNightlyApiUrl);
         if (!apiResponse.IsSuccessStatusCode)
         {
-            Log.Warning("Failed to get latest ffmpeg release: {ResponseStatusCode}", apiResponse.StatusCode);
+            Log.Warning("获取最新 Ffmpeg 发布信息失败: {ResponseStatusCode}", apiResponse.StatusCode);
             return;
         }
         var data = await apiResponse.Content.ReadAsStringAsync();
         var json = JsonConvert.DeserializeObject<GitHubRelease>(data);
         if (json == null)
         {
-            Log.Error("Failed to parse ffmpeg release response.");
+            Log.Error("解析 ffmpeg 发布响应失败。");
             return;
         }
 
         var currentffmpegVersion = Versions.CurrentVersion.ffmpeg;
         if (!File.Exists(ffmpegPath))
-            currentffmpegVersion = "Not Installed";
+            currentffmpegVersion = "未安装";
 
         var latestVersion = OperatingSystem.IsWindows() ? json.tag_name : json.name;
-        Log.Information("FFmpeg Current: {Installed} Latest: {Latest}", currentffmpegVersion, latestVersion);
+        Log.Information("FFmpeg 当前: {Installed}，最新: {Latest}", currentffmpegVersion, latestVersion);
         if (string.IsNullOrEmpty(latestVersion))
         {
-            Log.Warning("Failed to check for FFmpeg updates.");
+            Log.Warning("检查 FFmpeg 更新失败。");
             return;
         }
         if (currentffmpegVersion == latestVersion)
         {
-            Log.Information("FFmpeg is up to date.");
+            Log.Information("FFmpeg 已是最新。");
             return;
         }
-        Log.Information("FFmpeg is outdated. Updating...");
+        Log.Information("FFmpeg 有可用更新，正在更新...");
 
         string assetSuffix;
         if (OperatingSystem.IsWindows())
@@ -259,13 +259,13 @@ public class YtdlManager
                     assetSuffix = "master-latest-linuxarm64-gpl.tar.xz";
                     break;
                 default:
-                    Log.Error("Unsupported architecture {OSArchitecture}", RuntimeInformation.OSArchitecture);
+                    Log.Error("不支持的架构 {OSArchitecture}", RuntimeInformation.OSArchitecture);
                     return;
             }
         }
         else
         {
-            Log.Error("Unsupported operating system {OperatingSystem}", Environment.OSVersion);
+            Log.Error("不支持的操作系统 {OperatingSystem}", Environment.OSVersion);
             return;
         }
         var url = json.assets
@@ -273,10 +273,10 @@ public class YtdlManager
             ?.browser_download_url ?? string.Empty;
         if (string.IsNullOrEmpty(url))
         {
-            Log.Error("Unable to find ffmpeg asset for this platform.");
+            Log.Error("无法为该平台找到 FFmpeg 资源。");
             return;
         }
-        Log.Information("Downloading FFmpeg...");
+        Log.Information("正在下载 FFmpeg...");
 
         using var response = await HttpClient.GetAsync(url);
         await using var responseStream = await response.Content.ReadAsStreamAsync();
@@ -290,7 +290,7 @@ public class YtdlManager
             if (reader.Entry.Key.Contains("/bin/"))
             {
                 var fileName = Path.GetFileName(reader.Entry.Key);
-                Log.Debug("Extracting file {Name} ({Size} bytes)", fileName, reader.Entry.Size);
+                Log.Debug("正在提取文件 {Name} ({Size} 字节)", fileName, reader.Entry.Size);
                 var path = Path.Combine(ConfigManager.UtilsPath, fileName);
                 await using var outputStream = new FileStream(path, FileMode.Create, FileAccess.Write, FileShare.None);
                 await using var entryStream = reader.OpenEntryStream();
@@ -302,20 +302,20 @@ public class YtdlManager
 
         if (!success)
         {
-            Log.Error("Failed to extract ffmpeg files.");
+            Log.Error("提取 FFmpeg 文件失败。");
             return;
         }
         
         Versions.CurrentVersion.ffmpeg = latestVersion;
         Versions.Save();
-        Log.Information("FFmpeg downloaded and extracted.");
+        Log.Information("FFmpeg 下载并提取完成。");
     }
     
     private static async Task DownloadYtdl(GitHubRelease json)
     {
         if (File.Exists(YtdlPath) && File.GetAttributes(YtdlPath).HasFlag(FileAttributes.ReadOnly))
         {
-            Log.Warning("Skipping yt-dlp download because location is unwritable.");
+            Log.Warning("跳过 yt-dlp 下载：目标路径不可写。");
             return;
         }
 
@@ -330,12 +330,12 @@ public class YtdlManager
             {
                 Architecture.X64 => "yt-dlp_linux",
                 Architecture.Arm64 => "yt-dlp_linux_aarch64",
-                _ => throw new Exception($"Unsupported architecture {RuntimeInformation.OSArchitecture}"),
+                _ => throw new Exception($"不支持的架构 {RuntimeInformation.OSArchitecture}"),
             };
         }
         else
         {
-            throw new Exception($"Unsupported operating system {Environment.OSVersion}");
+            throw new Exception($"不支持的操作系统 {Environment.OSVersion}");
         }
 
         foreach (var assetVersion in json.assets)
@@ -344,18 +344,18 @@ public class YtdlManager
                 continue;
 
             await using var stream = await HttpClient.GetStreamAsync(assetVersion.browser_download_url);
-            if (string.IsNullOrEmpty(ConfigManager.UtilsPath))
-                throw new Exception("Failed to get YT-DLP path");
+                if (string.IsNullOrEmpty(ConfigManager.UtilsPath))
+                throw new Exception("获取 YT-DLP 路径失败");
 
             await using var fileStream = new FileStream(YtdlPath, FileMode.Create, FileAccess.Write, FileShare.None);
             await stream.CopyToAsync(fileStream);
-            Log.Information("Downloaded YT-DLP.");
+            Log.Information("已下载 YT-DLP。");
             FileTools.MarkFileExecutable(YtdlPath);
             Versions.CurrentVersion.ytdlp = json.tag_name;
             Versions.Save();
             return;
         }
-        throw new Exception("Failed to download YT-DLP");
+        throw new Exception("下载 YT-DLP 失败");
     }
     
     private static readonly List<string> YtdlConfigPaths =

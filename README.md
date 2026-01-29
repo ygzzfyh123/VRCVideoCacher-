@@ -1,79 +1,113 @@
-# STEAM RELEASE WITH NEW UI COMING SOON!
-### [Click here](https://store.steampowered.com/app/4296960/VRCVideoCacher/) to wishlist us on Steam!
+# 即将推出带有新界面的 Steam 版本！
+### [点击这里](https://store.steampowered.com/app/4296960/VRCVideoCacher/) 将我们加入愿望单
 
-[![img](https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/4296960/d1bac93e4abb00108cda2137260b76a25bcffea4/header.jpg)](https://store.steampowered.com/app/4296960/VRCVideoCacher/)
-
+![img](https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/4296960/d1bac93e4abb00108cda2137260b76a25bcffea4/header.jpg)
 
 # VRCVideoCacher
 
-### What is VRCVideoCacher?
+### 什么是 VRCVideoCacher？
 
-VRCVideoCacher is a tool used to cache VRChat videos to your local disk and/or fix YouTube videos from failing to load.
+VRCVideoCacher 是一个用于将 VRChat 视频缓存到本地磁盘并修复 YouTube 视频加载失败问题的工具。
 
-### How does it work?
+### 它如何工作？
 
-It replaces VRChats yt-dlp.exe with our own stub yt-dlp, this gets replaced on application startup and is restored on exit.
+该程序会将 VRChat 的 `yt-dlp.exe` 替换为我们自带的 stub 版本，程序启动时会替换为真正的二进制，退出时会恢复原文件。
 
-Auto install missing codecs: [VP9](https://apps.microsoft.com/detail/9n4d0msmp0pt) | [AV1](https://apps.microsoft.com/detail/9mvzqvxjbq9v) | [AC-3](https://apps.microsoft.com/detail/9nvjqjbdkn97)
+自动安装缺失的解码器： [VP9](https://apps.microsoft.com/detail/9n4d0msmp0pt) | [AV1](https://apps.microsoft.com/detail/9mvzqvxjbq9v) | [AC-3](https://apps.microsoft.com/detail/9nvjqjbdkn97)
 
-### Are there any risks involved?
+### 是否有风险？
 
-From VRC or EAC? no.
+- 来自 VR 或 EAC？没有已知风险。
+- 来自 YouTube/Google？有可能，因此我们强烈建议尽可能使用备用的 Google 帐号。
 
-From YouTube/Google? maybe, we strongly recommend you use an alternative Google account if possible.
+### 如何规避 YouTube 机器人检测
 
-### How to circumvent YouTube bot detection
+要修复 YouTube 视频加载失败的问题，您需要安装我们的浏览器扩展（Chrome：[这里](https://chromewebstore.google.com/detail/vrcvideocacher-cookies-ex/kfgelknbegappcajiflgfbjbdpbpokge)；Firefox：[这里](https://addons.mozilla.org/en-US/firefox/addon/vrcvideocachercookiesexporter)）。更多信息见：[项目扩展仓库](https://github.com/clienthax/VRCVideoCacherBrowserExtension)。
 
-In order to fix YouTube videos failing to load, you'll need to install our Chrome extension from [here](https://chromewebstore.google.com/detail/vrcvideocacher-cookies-ex/kfgelknbegappcajiflgfbjbdpbpokge) or Firefox from [here](https://addons.mozilla.org/en-US/firefox/addon/vrcvideocachercookiesexporter), more info [here](https://github.com/clienthax/VRCVideoCacherBrowserExtension). Visit [YouTube.com](https://www.youtube.com) while signed in, at least once while VRCVideoCacher is running, after VRCVideoCacher has obtained your cookies you can safely uninstall the extension, although be aware that if you visit YouTube again with the same browser while the account is still logged in, YouTube will refresh you cookies invalidating the cookies stored in VRCVideoCacher. To circumvent this I recommended deleting your YouTube cookies from your browser after VRCVideoCacher has obtained them, or if you're using your main YouTube account leave the extension installed, or maybe even use an entirely separate web browser from your main one to keep things simple.
+在 VRCVideoCacher 运行期间，至少在一次登录且已加载扩展的浏览器中访问 YouTube.com，待程序获取到 cookies 后可以安全地卸载扩展。但请注意：如果之后使用相同浏览器再次访问并保持登录状态，YouTube 可能会刷新 cookies，使已存储的 cookies 失效。为避免此问题，建议在程序获取 cookies 后删除浏览器中的 YouTube cookies，或使用一个与主浏览器分离的备用浏览器/账号。
 
-### Fix YouTube videos sometimes failing to play
+### 修复 YouTube 视频有时无法播放的问题
 
-> Loading failed. File not found, codec not supported, video resolution too high or insufficient system resources.
+> 加载失败。找不到文件，或不支持的编码格式，或视频分辨率过高，或系统资源不足。
 
-Sync system time, Open Windows Settings -> Time & Language -> Date & Time, under "Additional settings" click "Sync now"
+同步系统时间：打开 Windows 设置 -> 时间和语言 -> 日期和时间，点击“其他设置”下的“立即同步”。
 
-Edit `Config.json` and set `ytdlDelay` to something like `10` seconds.
+编辑 `Config.json`，将 `ytdlDelay` 设置为例如 `10`（秒）。
 
-### Fix cached videos failing to play in public instances
+### 修复公共世界中缓存视频无法播放的问题
 
-> Attempted to play an untrusted URL (Domain: localhost) that is not allowlisted for public instances.
+> 试图播放未受信任的 URL（域：localhost），未被允许在公共世界中播放。
 
-Run notepad as Admin then browse to `C:\Windows\System32\drivers\etc\hosts` add this new line `127.0.0.1 localhost.youtube.com` to the bottom of the file, edit `Config.json` and set `ytdlWebServerURL` to `http://localhost.youtube.com:9696`
+以管理员身份运行记事本，编辑 `C:\Windows\System32\drivers\etc\hosts`，在文件末尾添加一行：
 
-### Running on Linux
+```
+127.0.0.1 localhost.youtube.com
+```
 
-- Install `dotnet-runtime-10.0`
-- Run with `./VRCVideoCacher`
-- By default VRCVideoCacher will try to download and run its own binaries, but if you'd like to use your system packages instead, set `ytdlPath` to `""` in `Config.json`, you'll need to install `deno`, `ffmpeg` and yt-dlp using `pip install "yt-dlp[default,curl-cffi]"` the pip version is required due to package manager versions not including browser impersonation, make sure to always keep yt-dlp updated otherwise you will run into issues.
+然后编辑 `Config.json` 并将 `ytdlWebServerURL` 设置为 `http://localhost.youtube.com:9696`
 
-### Uninstalling
+### 在 Linux 上运行
 
-- If you have VRCX, delete the startup shortcut "VRCVideoCacher" from `%AppData%\VRCX\startup`
-- Delete "yt-dlp.exe" from `%AppData%\..\LocalLow\VRChat\VRChat\Tools` and restart VRChat or rejoin world.
+- 安装 `dotnet-runtime-10.0`
+- 使用 `./VRCVideoCacher` 运行
+- 默认情况下，VRCVideoCacher 会尝试下载并使用自带的二进制；如果希望使用系统包，请在 `Config.json` 中将 `ytdlPath` 设置为 `""`，然后手动通过 `pip install "yt-dlp[default,curl-cffi]"` 安装 `yt-dlp`，并确保安装 `deno` 和 `ffmpeg`。请保持 yt-dlp 更新以避免问题。
 
-### Config Options
+### 卸载
 
-| Option                    | Description                                                                                                                                                                                                                                                                                    |
-| ------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| ytdlWebServerURL          | Used to circumvent VRChats public world video player whitelist, see above for usage instructions.                                                                                                                                                                                              |
-| ytdlPath                  | Path to the yt-dlp executable, default `Utils\\yt-dlp.exe`, when set to `""` it will use global PATH instead, as a side effect this will disable the yt-dlp, ffmpeg and deno auto updater.                                                                                                     |
-| ytdlUseCookies            | Uses the [Chrome](https://github.com/clienthax/VRCVideoCacherBrowserExtension) or [Firefox](https://addons.mozilla.org/en-GB/android/addon/vrcvideocachercookiesexporter) extension for cookies, this is used to circumvent YouTubes bot detection.                                            |
-| ytdlAutoUpdate            | Auto update yt-dlp, ffmpeg and deno.                                                                                                                                                                                                                                                           |
-| ytdlAdditionalArgs        | Add your own [yt-dlp args](https://github.com/yt-dlp/yt-dlp?tab=readme-ov-file#usage-and-options) (only add these if you know what you're doing)                                                                                                                                               |
-| ytdlDubLanguage           | Set preferred audio language for AVPro and cached videos, be warned you may end up with auto translated slop. e.g. `de` for German, check list of [supported lang codes](https://github.com/yt-dlp/yt-dlp/blob/c26f9b991a0681fd3ea548d535919cec1fbbd430/yt_dlp/extractor/youtube.py#L381-L390) |
-| ytdlDelay                 | No delay (Default) `0`, YouTube videos can fail to load sometimes in-game without this delay. e.g. `8` for 8 seconds.                                                                                                                                                                          |
-| CachedAssetPath           | Location to store downloaded videos, e.g. store videos on separate drive with `D:\\DownloadedVideos`                                                                                                                                                                                           |
-| BlockedUrls               | List of URLs to never load in VRC, also works for blocking domains e.g. `[ "https://youtube.com", "https://youtu.be" ]` to block YouTube.                                                                                                                                                      |
-| BlockRedirect             | Video to load in-place of Blocked URL.                                                                                                                                                                                                                                                         |
-| CacheYouTube              | Download YouTube videos to `CachedAssets` to improve load times next time the video plays.                                                                                                                                                                                                     |
-| CacheYouTubeMaxResolution | Maximum resolution to cache youtube videos in (Larger resolutions will take longer to cache), e.g. `2160` for 4K.                                                                                                                                                                              |
-| CacheYouTubeMaxLength     | Maximum video duration in minutes, e.g. `60` for 1 hour.                                                                                                                                                                                                                                       |
-| CacheMaxSizeInGb          | Maximum size of `CachedAssets` folder in GB, `0` for Unlimited.                                                                                                                                                                                                                                |
-| CachePyPyDance            | Download videos that play while you're in [PyPyDance](https://vrchat.com/home/world/wrld_f20326da-f1ac-45fc-a062-609723b097b1)                                                                                                                                                                 |
-| CacheVRDancing            | Download videos that play while you're in [VRDancing](https://vrchat.com/home/world/wrld_42377cf1-c54f-45ed-8996-5875b0573a83)                                                                                                                                                                 |
-| PatchResonite             | Enable Resonite support.                                                                                                                                                                                                                                                                       |
-| PatchVRC                  | Enable VRChat support.                                                                                                                                                                                                                                                                         |
-| AutoUpdate                | When a update is available for VRCVideoCacher it will automatically be installed.                                                                                                                                                                                                              |
-| PreCacheUrls              | Download all videos from a JSON list format e.g. `[{"fileName":"video.mp4","url":"https:\/\/example.com\/video.mp4","lastModified":1631653260,"size":124029113},...]` "lastModified" and "size" are optional fields used for file integrity.                                                   |
+- 如果您安装了 VRCX，请删除 `%AppData%\VRCX\startup` 下名为 `VRCVideoCacher` 的启动捷径。
+- 删除 `%AppData%\..\LocalLow\VRChat\VRChat\Tools` 中的 `yt-dlp.exe`，然后重启 VRChat 或重新进入世界。
 
-> Generate PoToken has unfortunately been [deprecated](https://github.com/iv-org/youtube-trusted-session-generator?tab=readme-ov-file#tool-is-deprecated)
+### 配置选项
+
+| 选项                     | 说明                                                                                                                                                                                                                                                                                           |
+| ------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| ytdlWebServerURL         | 用于规避 VRChat 的公共世界视频播放器白名单，具体用法见上文。                                                                                                                                                                                                                                   |
+| ytdlPath                 | 指定 yt-dlp 可执行文件路径，默认 `Utils\\yt-dlp.exe`；若设置为空字符串 `""` 将使用系统 PATH，这会同时禁用 yt-dlp、ffmpeg 和 deno 的自动更新功能。                                                                                                                                                |
+| ytdlUseCookies           | 使用浏览器扩展获取 cookies（Chrome/Firefox），用于规避 YouTube 的机器人检测。                                                                                                                                                                                                                  |
+| ytdlAutoUpdate           | 自动更新 yt-dlp、ffmpeg 和 deno。                                                                                                                                                                                                                                                               |
+| ytdlAdditionalArgs       | 添加自定义的 [yt-dlp 参数](https://github.com/yt-dlp/yt-dlp?tab=readme-ov-file#usage-and-options)（仅在了解含义时使用）。                                                                                                                                                                           |
+| ytdlDubLanguage          | 为 AVPro 和缓存视频设置首选音频语言（可能导致自动翻译等问题）。例如 `de` 表示德语。                                                                                                                                                                                                                |
+| ytdlDelay                | 延迟（秒），默认 `0`；某些情况下在游戏内播放 YouTube 视频需要稍作延迟（例如 `8`）。                                                                                                                                                                                                               |
+| CachedAssetPath          | 存储已缓存视频的位置，例如将视频存放在独立磁盘 `D:\\DownloadedVideos`。                                                                                                                                                                                                                         |
+| BlockedUrls              | 列表中指定的 URL 将不会加载，也可用来屏蔽域名（例如 `[ "https://youtube.com", "https://youtu.be" ]`）。                                                                                                                                                                                               |
+| BlockRedirect            | 当被屏蔽时用于替代播放的本地视频。                                                                                                                                                                                                                                                              |
+| CacheYouTube             | 将 YouTube 视频下载到 `CachedAssets` 以提升下次播放速度。                                                                                                                                                                                                                                      |
+| CacheYouTubeMaxResolution| 缓存 YouTube 视频的最大分辨率（分辨率越高下载越慢），例如 `2160` 表示 4K。                                                                                                                                                                                                                        |
+| CacheYouTubeMaxLength    | 缓存视频的最大时长（分钟），例如 `60` 表示 1 小时。                                                                                                                                                                                                                                              |
+| CacheMaxSizeInGb         | `CachedAssets` 文件夹的最大占用（GB），`0` 表示不限制。                                                                                                                                                                                                                                          |
+| CachePyPyDance           | 下载在 [PyPyDance](https://vrchat.com/home/world/wrld_f20326da-f1ac-45fc-a062-609723b097b1) 世界中播放的视频。                                                                                                                                                                                         |
+| CacheVRDancing           | 下载在 [VRDancing](https://vrchat.com/home/world/wrld_42377cf1-c54f-45ed-8996-5875b0573a83) 世界中播放的视频。                                                                                                                                                                                         |
+| PatchResonite            | 启用 Resonite 支持。                                                                                                                                                                                                                                                                              |
+| PatchVRC                 | 启用对 VRChat 的支持。                                                                                                                                                                                                                                                                            |
+| AutoUpdate               | 当有新版本可用时自动安装更新。                                                                                                                                                                                                                                                                    |
+| PreCacheUrls             | 从 JSON 列表预下载所有视频，例如 `[{"fileName":"video.mp4","url":"https:\/\/example.com\/video.mp4","lastModified":1631653260,"size":124029113},...]`，其中 `lastModified` 和 `size` 为可选字段用于文件完整性校验。                                                                                              |
+
+> Generate PoToken 工具已被[弃用](https://github.com/iv-org/youtube-trusted-session-generator?tab=readme-ov-file#tool-is-deprecated)
+
+## 自动在游戏启动时运行
+
+本仓库新增了一个“监视器”模式和安装/卸载 Windows 计划任务的命令行选项，便于在指定游戏启动时自动运行主程序。
+
+用法示例（Windows）：
+
+- 安装计划任务（登录时启动 watcher，默认监视 `VRChat.exe`）：
+
+```bash
+VRCVideoCacher.exe --install-watch-task
+```
+
+- 卸载计划任务：
+
+```bash
+VRCVideoCacher.exe --uninstall-watch-task
+```
+
+- 手动以 watcher 模式运行（可指定监视的游戏可执行文件）：
+
+```bash
+VRCVideoCacher.exe --watch --watch-game=VRChat.exe
+```
+
+说明：
+- watcher 模式会轮询进程列表，检测到指定的游戏可执行文件启动后会尝试启动 `VRCVideoCacher.exe`（如果尚未运行）。
+- 安装计划任务通常需要管理员权限；计划任务通过 `schtasks` 创建，默认任务名为 `VRCVideoCacherWatcher`。

@@ -50,12 +50,12 @@ internal static class Program
             break;
         }
         
-        WriteLog($"Starting with args: {string.Join(" ", args)}, avPro: {avPro}, source: {source}");
+        WriteLog($"启动参数: {string.Join(" ", args)}, avPro: {avPro}, source: {source}");
         
         if (string.IsNullOrEmpty(url))
         {
-            WriteLog("[Error] No URL found in arguments");
-            await Console.Error.WriteLineAsync("ERROR: [VRCVideoCacher] No URL found in arguments");
+            WriteLog("[错误] 参数中未找到 URL");
+            await Console.Error.WriteLineAsync("错误: [VRCVideoCacher] 参数中未找到 URL");
             Environment.ExitCode = 1;
             return;
         }
@@ -73,8 +73,8 @@ internal static class Program
         }
         catch (HttpRequestException ex) when (ex.InnerException is SocketException socketEx && socketEx.SocketErrorCode == SocketError.ConnectionRefused)
         {
-            WriteLog("[Error] Connection refused. Is the server running?");
-            await Console.Error.WriteLineAsync("ERROR: [VRCVideoCacher] Connection refused. Is VRCVideoCacher running?");
+            WriteLog("[错误] 连接被拒绝。服务器是否在运行？");
+            await Console.Error.WriteLineAsync("错误: [VRCVideoCacher] 连接被拒绝。请确认 VRCVideoCacher 是否正在运行？");
             var ytdlPath = Path.Combine(appDataPath, "yt-dlp.exe");
             if (File.Exists(ytdlPath) && File.GetAttributes(ytdlPath).HasFlag(FileAttributes.ReadOnly))
             {
@@ -86,8 +86,8 @@ internal static class Program
         }
         catch (Exception ex)
         {
-            WriteLog($"[Error] {ex}");
-            await Console.Error.WriteLineAsync($"ERROR: [VRCVideoCacher] {ex.GetType().Name}: {ex.Message}");
+            WriteLog($"[错误] {ex}");
+            await Console.Error.WriteLineAsync($"错误: [VRCVideoCacher] {ex.GetType().Name}: {ex.Message}");
             Environment.ExitCode = 1;
         }
     }
