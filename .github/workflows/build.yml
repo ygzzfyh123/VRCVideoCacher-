@@ -1,0 +1,44 @@
+name: Build VRCVideoCacher
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    name: Build on Windows
+    runs-on: windows-latest
+
+    env:
+
+      Solution_Name: VRCVideoCacher.sln
+      Configuration: Release
+
+    steps:
+    - name: Checkout Code (拉取代码)
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Setup MSBuild (安装构建工具)
+      uses: microsoft/setup-msbuild@v2
+
+    - name: Setup NuGet (安装包管理器)
+      uses: NuGet/setup-nuget@v2
+
+    - name: Restore NuGet Packages (下载依赖库)
+
+      run: nuget restore ${{ env.Solution_Name }}
+
+    - name: Build Solution (编译程序)
+
+      run: msbuild ${{ env.Solution_Name }} /p:Configuration=${{ env.Configuration }} /p:Platform="Any CPU"
+
+    - name: Upload Build Artifact (打包上传)
+      uses: actions/upload-artifact@v4
+      with:
+        name: VRCVideoCacher-Release-Build
+
+        path: '**/bin/Release/**'
