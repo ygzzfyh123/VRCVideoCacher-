@@ -1,7 +1,17 @@
-# 即将推出带有新界面的 Steam 版本！
+# 即将推出带有新界面的 Steam 版本！（官方广告）
 ### [点击这里](https://store.steampowered.com/app/4296960/VRCVideoCacher/) 将我们加入愿望单
 
 ![img](https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/4296960/d1bac93e4abb00108cda2137260b76a25bcffea4/header.jpg)
+
+
+------------------以下为用法----------------
+
+
+我创建了一个config GUI用--config 命令运行正常的exe即可。
+可以按照最下面的教程写一个任务计划，可以在vrchat启动时自动运行程序。
+全部做了汉化喵。
+
+
 
 # VRCVideoCacher
 
